@@ -19,6 +19,10 @@ const QuotationDetail: React.FC<QuotationDetailProps> = ({ quotation }) => {
     declined: "bg-red-100 text-red-800",
   };
 
+  // Calculate the final amount if it's not already provided
+  const finalAmount = quotation.finalAmount || quotation.totalAmount;
+  const hasDiscount = quotation.discountPercentage && quotation.discountPercentage > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -80,8 +84,13 @@ const QuotationDetail: React.FC<QuotationDetailProps> = ({ quotation }) => {
             Total Amount
           </h3>
           <p className="text-3xl font-medium">
-            ${quotation.totalAmount.toLocaleString()}
+            ${finalAmount.toLocaleString()}
           </p>
+          {hasDiscount && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Includes {quotation.discountPercentage}% discount
+            </p>
+          )}
         </Card>
       </div>
 
@@ -119,13 +128,17 @@ const QuotationDetail: React.FC<QuotationDetailProps> = ({ quotation }) => {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>${quotation.totalAmount.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tax</span>
-                <span>$0.00</span>
-              </div>
+              
+              {hasDiscount && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Discount ({quotation.discountPercentage}%)</span>
+                  <span>-${((quotation.totalAmount * quotation.discountPercentage!) / 100).toLocaleString()}</span>
+                </div>
+              )}
+              
               <div className="flex justify-between font-medium text-lg pt-2 border-t">
                 <span>Total</span>
-                <span>${quotation.totalAmount.toLocaleString()}</span>
+                <span>${finalAmount.toLocaleString()}</span>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@ import { ButtonCustom } from "./ui/button-custom";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Save, Send } from "lucide-react";
+import { Plus, Trash2, Save, Send, Percent } from "lucide-react";
 import { QuotationItem } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({ onSubmit }) => {
   const [items, setItems] = useState<QuotationItem[]>([
     { id: uuidv4(), name: "", quantity: 1, price: 0 },
   ]);
+  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
 
   const addItem = () => {
     setItems([...items, { id: uuidv4(), name: "", quantity: 1, price: 0 }]);
@@ -50,6 +51,12 @@ const QuotationForm: React.FC<QuotationFormProps> = ({ onSubmit }) => {
     }, 0);
   };
 
+  const calculateFinalAmount = () => {
+    const subtotal = calculateTotal();
+    const discountAmount = (subtotal * discountPercentage) / 100;
+    return subtotal - discountAmount;
+  };
+
   const handleSubmit = (e: React.FormEvent, status: 'draft' | 'sent') => {
     e.preventDefault();
     
@@ -69,6 +76,8 @@ const QuotationForm: React.FC<QuotationFormProps> = ({ onSubmit }) => {
       clientName,
       items,
       totalAmount: calculateTotal(),
+      discountPercentage,
+      finalAmount: calculateFinalAmount(),
       date: new Date().toISOString().split("T")[0],
       status,
     };
@@ -187,12 +196,42 @@ const QuotationForm: React.FC<QuotationFormProps> = ({ onSubmit }) => {
               ))}
             </AnimatePresence>
 
+            <div className="px-6 py-4 border-t">
+              <div className="flex items-center space-x-4">
+                <Label htmlFor="discount" className="shrink-0">Discount (%)</Label>
+                <div className="relative w-full max-w-[120px]">
+                  <Input
+                    id="discount"
+                    type="number"
+                    value={discountPercentage}
+                    min={0}
+                    max={100}
+                    onChange={(e) => setDiscountPercentage(parseFloat(e.target.value) || 0)}
+                  />
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    <Percent className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="px-6 py-4 border-t bg-secondary/50">
               <div className="flex justify-end">
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground">Total Amount</div>
-                  <div className="text-2xl font-medium">
-                    ${calculateTotal().toLocaleString()}
+                <div className="text-right space-y-1">
+                  <div className="text-sm text-muted-foreground flex justify-between">
+                    <span className="mr-8">Subtotal</span>
+                    <span>${calculateTotal().toLocaleString()}</span>
+                  </div>
+                  
+                  {discountPercentage > 0 && (
+                    <div className="text-sm text-muted-foreground flex justify-between">
+                      <span className="mr-8">Discount ({discountPercentage}%)</span>
+                      <span>-${((calculateTotal() * discountPercentage) / 100).toLocaleString()}</span>
+                    </div>
+                  )}
+                  
+                  <div className="text-2xl font-medium pt-2 border-t">
+                    ${calculateFinalAmount().toLocaleString()}
                   </div>
                 </div>
               </div>

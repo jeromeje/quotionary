@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import CreateQuotation from "./pages/CreateQuotation";
 import ViewQuotation from "./pages/ViewQuotation"; 
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/create" element={<CreateQuotation />} />
           <Route path="/view/:id" element={<ViewQuotation />} />
+          <Route path="/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
