@@ -1,66 +1,83 @@
 
-import { Quotation } from "./types";
+import { Product, Cart } from "./types";
 
-export const mockQuotations: Quotation[] = [
+export const mockProducts: Product[] = [
   {
-    id: "q1",
-    clientName: "Acme Corporation",
-    items: [
-      { id: "i1", name: "Website Design", quantity: 1, price: 2500 },
-      { id: "i2", name: "SEO Package", quantity: 1, price: 1200 },
-      { id: "i3", name: "Content Creation", quantity: 10, price: 120 },
-    ],
-    totalAmount: 4900,
-    date: "2023-04-15",
-    status: "sent",
+    id: "p1",
+    name: "Fresh Apples",
+    price: 2.99,
+    category: "Fruits",
+    description: "Fresh and juicy apples, perfect for snacking or baking.",
+    stock: 50,
+    image: "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&q=80&w=400&h=300"
   },
   {
-    id: "q2",
-    clientName: "TechStart Inc.",
-    items: [
-      { id: "i4", name: "Mobile App Development", quantity: 1, price: 8000 },
-      { id: "i5", name: "UI/UX Design", quantity: 1, price: 1500 },
-    ],
-    totalAmount: 9500,
-    date: "2023-04-12",
-    status: "accepted",
+    id: "p2",
+    name: "Organic Bananas",
+    price: 1.99,
+    category: "Fruits",
+    description: "Organic bananas, rich in potassium and perfect for smoothies.",
+    stock: 40,
+    image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&q=80&w=400&h=300"
   },
   {
-    id: "q3",
-    clientName: "Global Enterprises",
-    items: [
-      { id: "i6", name: "Server Maintenance", quantity: 12, price: 400 },
-      { id: "i7", name: "Security Audit", quantity: 1, price: 3000 },
-      { id: "i8", name: "Data Backup Service", quantity: 1, price: 800 },
-    ],
-    totalAmount: 8600,
-    date: "2023-04-10",
-    status: "draft",
+    id: "p3",
+    name: "Whole Milk",
+    price: 3.49,
+    category: "Dairy",
+    description: "Fresh whole milk from local farms.",
+    stock: 30,
+    image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&q=80&w=400&h=300"
   },
   {
-    id: "q4",
-    clientName: "Innovate Solutions",
-    items: [
-      { id: "i9", name: "Consulting Services", quantity: 20, price: 150 },
-      { id: "i10", name: "Market Research", quantity: 1, price: 2500 },
-    ],
-    totalAmount: 5500,
-    date: "2023-04-05",
-    status: "declined",
+    id: "p4",
+    name: "Whole Wheat Bread",
+    price: 4.29,
+    category: "Bakery",
+    description: "Freshly baked whole wheat bread, perfect for sandwiches.",
+    stock: 25,
+    image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400&h=300"
   },
   {
-    id: "q5",
-    clientName: "Future Technologies",
-    items: [
-      { id: "i11", name: "Hardware Installation", quantity: 5, price: 600 },
-      { id: "i12", name: "Training Session", quantity: 3, price: 800 },
-    ],
-    totalAmount: 5400,
-    date: "2023-04-02",
-    status: "sent",
+    id: "p5",
+    name: "Chicken Breast",
+    price: 7.99,
+    category: "Meat",
+    description: "Fresh boneless, skinless chicken breast.",
+    stock: 20,
+    image: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&q=80&w=400&h=300"
   },
 ];
 
-export function getQuotationById(id: string): Quotation | undefined {
-  return mockQuotations.find(quotation => quotation.id === id);
+export const mockCarts: Cart[] = [
+  {
+    id: "c1",
+    userId: "user123",
+    items: [
+      { id: "ci1", productId: "p1", name: "Fresh Apples", quantity: 2, price: 2.99 },
+      { id: "ci2", productId: "p3", name: "Whole Milk", quantity: 1, price: 3.49 },
+    ],
+    totalAmount: 9.47,
+    date: "2023-06-15",
+    status: "completed",
+  },
+  {
+    id: "c2",
+    userId: "user123",
+    items: [
+      { id: "ci3", productId: "p2", name: "Organic Bananas", quantity: 3, price: 1.99 },
+      { id: "ci4", productId: "p4", name: "Whole Wheat Bread", quantity: 1, price: 4.29 },
+    ],
+    totalAmount: 10.26,
+    date: "2023-06-18",
+    status: "pending",
+  },
+];
+
+export function getProductById(id: string): Product | undefined {
+  return mockProducts.find(product => product.id === id);
+}
+
+export function getCartById(id: string): Cart | undefined {
+  return mockCarts.find(cart => cart.id === id);
 }

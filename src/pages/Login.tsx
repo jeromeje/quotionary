@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ButtonCustom } from "@/components/ui/button-custom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { LogIn, UserRound } from "lucide-react";
+import { LogIn, Store } from "lucide-react";
 import { toast } from "sonner";
 import PageTransition from "@/components/PageTransition";
 
@@ -15,9 +15,9 @@ const mockAuth = (email: string, password: string): Promise<{ success: boolean; 
   return new Promise((resolve) => {
     setTimeout(() => {
       // For demo purposes only
-      if (email === "admin@example.com" && password === "admin123") {
+      if (email === "admin@freshmart.com" && password === "admin123") {
         resolve({ success: true, role: 'admin' });
-      } else if (email === "user@example.com" && password === "user123") {
+      } else if (email === "user@freshmart.com" && password === "user123") {
         resolve({ success: true, role: 'user' });
       } else {
         resolve({ success: false });
@@ -67,9 +67,12 @@ const Login = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+            <div className="flex justify-center mb-2">
+              <Store className="h-10 w-10 text-primary" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Welcome to FreshMart</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              Sign in to your account to start shopping
             </CardDescription>
           </CardHeader>
           
@@ -80,7 +83,7 @@ const Login = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder="email@freshmart.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -105,8 +108,8 @@ const Login = () => {
               
               <div className="text-sm text-muted-foreground">
                 <p>Demo Credentials:</p>
-                <p>Admin: admin@example.com / admin123</p>
-                <p>User: user@example.com / user123</p>
+                <p>Admin: admin@freshmart.com / admin123</p>
+                <p>User: user@freshmart.com / user123</p>
               </div>
             </CardContent>
             

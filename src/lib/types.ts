@@ -1,20 +1,29 @@
 
-export interface QuotationItem {
+export interface Product {
   id: string;
+  name: string;
+  price: number;
+  category: string;
+  description: string;
+  image?: string;
+  stock: number;
+}
+
+export interface CartItem {
+  id: string;
+  productId: string;
   name: string;
   quantity: number;
   price: number;
 }
 
-export interface Quotation {
+export interface Cart {
   id: string;
-  clientName: string;
-  items: QuotationItem[];
+  userId: string;
+  items: CartItem[];
   totalAmount: number;
-  discountPercentage?: number;
-  finalAmount?: number;
   date: string;
-  status: 'draft' | 'sent' | 'accepted' | 'declined';
+  status: 'pending' | 'completed' | 'cancelled';
 }
 
 export type UserRole = 'user' | 'admin';
