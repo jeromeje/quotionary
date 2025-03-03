@@ -1,289 +1,247 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
 import { ButtonCustom } from "@/components/ui/button-custom";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Trash2, ShoppingCart, Plus, Minus } from "lucide-react";
-import { toast } from "sonner";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import Navbar from "@/components/Navbar";
 import PageTransition from "@/components/PageTransition";
-import { mockProducts } from "@/lib/data";
-import { Product } from "@/lib/types";
-import { motion } from "framer-motion";
-
-interface CartItemWithProduct {
-  id: string;
-  product: Product;
-  quantity: number;
-}
+import { ShoppingCart, Trash2, ArrowRight, FileText } from "lucide-react";
+import { toast } from "sonner";
+import { CartItem } from "@/lib/types";
+import { mockCarts } from "@/lib/data";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState<CartItemWithProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check if logged in
+    // Check if user is logged in
     const loginStatus = localStorage.getItem("isLoggedIn");
-    if (loginStatus !== "true") {
-      toast.error("Please login to view your cart");
-      navigate("/login");
-      return;
-    }
+    setIsLoggedIn(loginStatus === "true");
 
-    // Get cart from localStorage
-    const storedCart = localStorage.getItem('cart');
-    if (storedCart) {
-      const parsedCart = JSON.parse(storedCart);
-      
-      // Get full product details for each cart item
-      const itemsWithProducts = parsedCart.map((item: {id: string, quantity: number}) => {
-        const product = mockProducts.find(p => p.id === item.id);
-        if (product) {
-          return {
-            id: item.id,
-            product,
-            quantity: item.quantity,
-          };
-        }
-        return null;
-      }).filter(Boolean);
-      
-      setCartItems(itemsWithProducts);
-      
-      // Calculate total
-      const total = itemsWithProducts.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity);
-      }, 0);
-      
-      setTotalAmount(total);
-    }
-    
-    setIsLoading(false);
-  }, [navigate]);
+    // Get cart from localStorage or use empty array
+    const savedCart = localStorage.getItem("cart");
+    const initialCart = savedCart ? JSON.parse(savedCart) : [];
+    setCartItems(initialCart);
 
-  const updateQuantity = (id: string, change: number) => {
-    const updatedCart = cartItems.map(item => {
-      if (item.id === id) {
-        const newQuantity = item.quantity + change;
-        if (newQuantity < 1) return item; // Don't allow less than 1
-        return {
-          ...item,
-          quantity: newQuantity
-        };
-      }
-      return item;
-    });
-    
-    setCartItems(updatedCart);
-    
-    // Update localStorage and recalculate total
-    const simplifiedCart = updatedCart.map(item => ({
-      id: item.id,
-      quantity: item.quantity
-    }));
-    
-    localStorage.setItem('cart', JSON.stringify(simplifiedCart));
-    
-    const total = updatedCart.reduce((sum, item) => {
-      return sum + (item.product.price * item.quantity);
-    }, 0);
-    
+    // Calculate total
+    const total = initialCart.reduce(
+      (sum: number, item: CartItem) => sum + item.price * item.quantity,
+      0
+    );
     setTotalAmount(total);
+  }, []);
+
+  const updateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+
+    const updatedItems = cartItems.map((item) =>
+      item.id === id ? { ...item, quantity: newQuantity } : item
+    );
+
+    setCartItems(updatedItems);
+    localStorage.setItem("cart", JSON.stringify(updatedItems));
+
+    // Update total
+    const newTotal = updatedItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    setTotalAmount(newTotal);
   };
 
   const removeItem = (id: string) => {
-    const updatedCart = cartItems.filter(item => item.id !== id);
-    setCartItems(updatedCart);
-    
-    // Update localStorage and recalculate total
-    const simplifiedCart = updatedCart.map(item => ({
-      id: item.id,
-      quantity: item.quantity
-    }));
-    
-    localStorage.setItem('cart', JSON.stringify(simplifiedCart));
-    
-    const total = updatedCart.reduce((sum, item) => {
-      return sum + (item.product.price * item.quantity);
-    }, 0);
-    
-    setTotalAmount(total);
+    const updatedItems = cartItems.filter((item) => item.id !== id);
+    setCartItems(updatedItems);
+    localStorage.setItem("cart", JSON.stringify(updatedItems));
+
+    // Update total
+    const newTotal = updatedItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    setTotalAmount(newTotal);
+
     toast.success("Item removed from cart");
   };
 
-  const checkout = () => {
-    if (cartItems.length === 0) {
-      toast.error("Your cart is empty");
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
+      toast.error("Please login to checkout");
+      navigate("/login?redirect=/cart");
       return;
     }
-    
-    // In a real app, this would proceed to payment
+
     toast.success("Order placed successfully!");
+    // Clear cart after checkout
     setCartItems([]);
-    localStorage.removeItem('cart');
+    localStorage.setItem("cart", JSON.stringify([]));
     setTotalAmount(0);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="page-container pt-28">
-          <p className="text-center">Loading cart...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleGenerateInvoice = () => {
+    if (!isLoggedIn) {
+      toast.error("Please login to generate invoice");
+      navigate("/login?redirect=/cart");
+      return;
+    }
+
+    // Use the first mock cart for demo purposes
+    // In a real app, you'd create a new invoice in the database
+    navigate(`/invoice/${mockCarts[0].id}`);
+  };
 
   return (
-    <PageTransition>
-      <div className="min-h-screen">
-        <Navbar />
-        
-        <div className="page-container pt-28">
-          <ButtonCustom 
-            asChild 
-            variant="outline" 
-            size="sm" 
-            className="mb-8"
-            onClick={() => navigate("/")}
-          >
-            <div>
-              <ArrowLeft className="h-4 w-4 mr-2" /> Continue Shopping
-            </div>
-          </ButtonCustom>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <ShoppingCart className="h-5 w-5 mr-2" /> Your Shopping Cart
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent>
-                  {cartItems.length === 0 ? (
-                    <div className="text-center py-12">
-                      <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium">Your cart is empty</h3>
-                      <p className="text-muted-foreground mb-4">Add some products to get started</p>
-                      <ButtonCustom asChild variant="outline">
-                        <div onClick={() => navigate("/")}>
-                          Continue Shopping
-                        </div>
-                      </ButtonCustom>
-                    </div>
-                  ) : (
+    <>
+      <Navbar />
+      <PageTransition>
+        <div className="container max-w-6xl mx-auto pt-24 pb-16 px-4">
+          <h1 className="text-3xl font-bold mb-6 flex items-center">
+            <ShoppingCart className="mr-2 h-6 w-6" /> Your Shopping Cart
+          </h1>
+
+          {cartItems.length === 0 ? (
+            <Card className="border-2 border-dashed bg-muted/50">
+              <CardContent className="py-12">
+                <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                  <ShoppingCart className="h-12 w-12 text-muted-foreground" />
+                  <h3 className="text-xl font-medium">Your cart is empty</h3>
+                  <p className="text-muted-foreground max-w-md">
+                    Looks like you haven't added any products to your cart yet.
+                  </p>
+                  <Button
+                    className="mt-2"
+                    onClick={() => navigate("/")}
+                  >
+                    Continue Shopping
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Card className="border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle>Shopping Cart ({cartItems.length} items)</CardTitle>
+                    <CardDescription>
+                      Review your items before checking out
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
                     <div className="space-y-4">
-                      {cartItems.map((item, index) => (
-                        <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
-                          className="flex items-center p-4 border rounded-md"
-                        >
-                          <div className="h-16 w-16 rounded overflow-hidden flex-shrink-0">
-                            <img 
-                              src={item.product.image || "https://via.placeholder.com/300x200"} 
-                              alt={item.product.name}
-                              className="h-full w-full object-cover"
-                            />
+                      {cartItems.map((item) => (
+                        <div key={item.id} className="flex items-center space-x-4">
+                          <div className="w-16 h-16 rounded bg-muted flex items-center justify-center">
+                            <span className="text-2xl">🥕</span>
                           </div>
-                          
-                          <div className="ml-4 flex-grow">
-                            <h4 className="font-medium">{item.product.name}</h4>
-                            <p className="text-sm text-muted-foreground">{item.product.category}</p>
-                            <p className="text-sm font-medium">${item.product.price.toFixed(2)}</p>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base font-medium truncate">
+                              {item.name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              ${item.price.toFixed(2)}
+                            </p>
                           </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            <ButtonCustom 
-                              size="sm" 
+                          <div className="flex items-center space-x-2">
+                            <Button
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, -1)}
-                              disabled={item.quantity <= 1}
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity - 1)
+                              }
                             >
-                              <Minus className="h-3 w-3" />
-                            </ButtonCustom>
-                            
-                            <span className="font-medium w-8 text-center">{item.quantity}</span>
-                            
-                            <ButtonCustom 
-                              size="sm" 
+                              -
+                            </Button>
+                            <span className="w-8 text-center">
+                              {item.quantity}
+                            </span>
+                            <Button
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, 1)}
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity + 1)
+                              }
                             >
-                              <Plus className="h-3 w-3" />
-                            </ButtonCustom>
+                              +
+                            </Button>
                           </div>
-                          
-                          <div className="ml-4 text-right flex-shrink-0 w-24">
-                            <p className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</p>
-                            <ButtonCustom 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-destructive hover:text-destructive mt-1"
+                          <div className="text-right min-w-[80px]">
+                            <div className="font-medium">
+                              ${(item.price * item.quantity).toFixed(2)}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => removeItem(item.id)}
                             >
                               <Trash2 className="h-4 w-4" />
-                            </ButtonCustom>
+                            </Button>
                           </div>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                <Card className="border shadow-sm sticky top-24">
+                  <CardHeader>
+                    <CardTitle>Order Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>${totalAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tax</span>
+                        <span>${(totalAmount * 0.07).toFixed(2)}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-medium text-lg">
+                        <span>Total</span>
+                        <span>${(totalAmount * 1.07).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-col space-y-2">
+                    <ButtonCustom
+                      variant="premium"
+                      className="w-full"
+                      onClick={handleCheckout}
+                    >
+                      Checkout <ArrowRight className="ml-2 h-4 w-4" />
+                    </ButtonCustom>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleGenerateInvoice}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Generate Invoice
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
             </div>
-            
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>${totalAmount.toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span>$0.00</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tax</span>
-                    <span>${(totalAmount * 0.08).toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="border-t pt-4 flex justify-between font-medium text-lg">
-                    <span>Total</span>
-                    <span>${(totalAmount + (totalAmount * 0.08)).toFixed(2)}</span>
-                  </div>
-                </CardContent>
-                
-                <CardFooter>
-                  <ButtonCustom
-                    className="w-full"
-                    variant="premium"
-                    disabled={cartItems.length === 0}
-                    onClick={checkout}
-                  >
-                    Checkout
-                  </ButtonCustom>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
+          )}
         </div>
-      </div>
-    </PageTransition>
+      </PageTransition>
+    </>
   );
 };
 

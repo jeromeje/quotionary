@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ButtonCustom } from "@/components/ui/button-custom";
@@ -28,9 +28,20 @@ const mockAuth = (email: string, password: string): Promise<{ success: boolean; 
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState("/");
+
+  useEffect(() => {
+    // Check if we have a redirect destination in the URL query params
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect');
+    if (redirect) {
+      setRedirectUrl(redirect);
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +62,7 @@ const Login = () => {
         localStorage.setItem("isLoggedIn", "true");
         
         toast.success(`Logged in successfully as ${result.role}`);
-        navigate("/");
+        navigate(redirectUrl);
       } else {
         toast.error("Invalid credentials. Please try again.");
       }

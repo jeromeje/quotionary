@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Cart from "./pages/Cart";
 import AdminAddProduct from "./pages/AdminAddProduct";
+import Invoice from "./pages/Invoice";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/admin/add-product" element={<AdminAddProduct />} />
+          <Route path="/invoice/:id" element={<Invoice />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
